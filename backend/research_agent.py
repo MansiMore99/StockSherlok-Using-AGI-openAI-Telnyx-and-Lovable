@@ -1,0 +1,277 @@
+"""
+Research Agent - Core AI-powered analysis engine
+"""
+import openai
+import yfinance as yf
+from typing import Dict, List, Optional
+import json
+
+
+class ResearchAgent:
+    """
+    AI-powered research agent for analyzing stocks and companies
+    """
+    
+    def __init__(self, api_key: str):
+        """Initialize the research agent with OpenAI API key"""
+        self.api_key = api_key
+        openai.api_key = api_key
+        
+    def _get_stock_data(self, ticker: str) -> Dict:
+        """Fetch stock data using yfinance"""
+        try:
+            stock = yf.Ticker(ticker)
+            info = stock.info
+            history = stock.history(period="1mo")
+            
+            return {
+                'current_price': info.get('currentPrice', 'N/A'),
+                'market_cap': info.get('marketCap', 'N/A'),
+                'pe_ratio': info.get('trailingPE', 'N/A'),
+                'revenue_growth': info.get('revenueGrowth', 'N/A'),
+                'profit_margins': info.get('profitMargins', 'N/A'),
+                'sector': info.get('sector', 'N/A'),
+                'industry': info.get('industry', 'N/A'),
+                'summary': info.get('longBusinessSummary', 'N/A'),
+                'recent_trend': 'up' if len(history) > 0 and history['Close'].iloc[-1] > history['Close'].iloc[0] else 'down'
+            }
+        except Exception as e:
+            return {'error': str(e)}
+    
+    def analyze_company(self, ticker: str, company_name: Optional[str] = None) -> Dict:
+        """
+        Perform comprehensive company analysis
+        """
+        # Get stock data
+        stock_data = self._get_stock_data(ticker)
+        
+        if 'error' in stock_data:
+            return {
+                'error': f"Failed to fetch data for {ticker}: {stock_data['error']}",
+                'recommendation': 'Unable to analyze'
+            }
+        
+        # Create prompt for OpenAI
+        prompt = f"""
+As an expert financial analyst specializing in mid-cap and early-stage tech companies, 
+analyze the following company data and provide clear, actionable insights for retail investors.
+
+Company: {company_name or ticker}
+Ticker: {ticker}
+
+Financial Data:
+- Current Price: ${stock_data.get('current_price', 'N/A')}
+- Market Cap: ${stock_data.get('market_cap', 'N/A'):,} 
+- P/E Ratio: {stock_data.get('pe_ratio', 'N/A')}
+- Revenue Growth: {stock_data.get('revenue_growth', 'N/A')}
+- Profit Margins: {stock_data.get('profit_margins', 'N/A')}
+- Sector: {stock_data.get('sector', 'N/A')}
+- Industry: {stock_data.get('industry', 'N/A')}
+- Recent Trend: {stock_data.get('recent_trend', 'N/A')}
+
+Business Summary:
+{stock_data.get('summary', 'N/A')}
+
+Provide:
+1. Key Strengths (2-3 points)
+2. Key Risks (2-3 points)
+3. Growth Potential Assessment
+4. Clear Recommendation (Buy, Hold, Sell, or Monitor)
+5. Price Target Range (if applicable)
+
+Keep the analysis concise and actionable for retail investors.
+"""
+        
+        try:
+            # Call OpenAI API
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are Sherlok, an AI research agent specializing in analyzing mid-cap and early-stage tech companies for retail investors. Provide clear, actionable insights."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1000
+            )
+            
+            analysis_text = response.choices[0].message.content
+            
+            return {
+                'ticker': ticker,
+                'company_name': company_name or ticker,
+                'stock_data': stock_data,
+                'analysis': analysis_text,
+                'timestamp': response.created
+            }
+        except Exception as e:
+            return {
+                'error': f"Analysis failed: {str(e)}",
+                'stock_data': stock_data
+            }
+    
+    def scan_market_signals(self, sector: str = 'technology', market_cap: str = 'mid') -> Dict:
+        """
+        Scan market for promising companies based on signals
+        """
+        # Define some sample mid-cap tech companies for demonstration
+        # In production, this would query a database or API
+        sample_tickers = {
+            'technology': ['PLTR', 'SNOW', 'CRWD', 'NET', 'DDOG', 'ZS'],
+            'healthcare': ['TDOC', 'VEEV', 'HIMS'],
+            'finance': ['SOFI', 'UPST', 'AFRM']
+        }
+        
+        tickers = sample_tickers.get(sector.lower(), sample_tickers['technology'])[:3]
+        
+        signals = []
+        for ticker in tickers:
+            stock_data = self._get_stock_data(ticker)
+            if 'error' not in stock_data:
+                # Calculate a simple signal score
+                score = 0
+                reasons = []
+                
+                # Revenue growth signal
+                if isinstance(stock_data.get('revenue_growth'), (int, float)) and stock_data['revenue_growth'] > 0.2:
+                    score += 30
+                    reasons.append('Strong revenue growth')
+                
+                # Trend signal
+                if stock_data.get('recent_trend') == 'up':
+                    score += 20
+                    reasons.append('Positive momentum')
+                
+                # Market cap signal
+                market_cap_val = stock_data.get('market_cap', 0)
+                if isinstance(market_cap_val, (int, float)) and 2e9 < market_cap_val < 50e9:
+                    score += 25
+                    reasons.append('Mid-cap sweet spot')
+                
+                # Profit margins signal
+                if isinstance(stock_data.get('profit_margins'), (int, float)) and stock_data['profit_margins'] > 0.1:
+                    score += 25
+                    reasons.append('Healthy profit margins')
+                
+                signals.append({
+                    'ticker': ticker,
+                    'score': score,
+                    'reasons': reasons,
+                    'current_price': stock_data.get('current_price', 'N/A'),
+                    'sector': stock_data.get('sector', 'N/A')
+                })
+        
+        # Sort by score
+        signals.sort(key=lambda x: x['score'], reverse=True)
+        
+        return {
+            'sector': sector,
+            'market_cap': market_cap,
+            'signals': signals,
+            'summary': f"Found {len(signals)} promising signals in {sector} sector"
+        }
+    
+    def summarize_report(self, ticker: str, report_type: str = 'earnings') -> Dict:
+        """
+        Summarize earnings reports or analyst notes
+        """
+        # Get company data
+        stock_data = self._get_stock_data(ticker)
+        
+        if 'error' in stock_data:
+            return {'error': f"Failed to fetch data for {ticker}"}
+        
+        prompt = f"""
+Summarize the latest {report_type} report for {ticker} ({stock_data.get('sector', 'N/A')} sector).
+
+Based on the following company information, provide a concise summary:
+- Industry: {stock_data.get('industry', 'N/A')}
+- Revenue Growth: {stock_data.get('revenue_growth', 'N/A')}
+- Profit Margins: {stock_data.get('profit_margins', 'N/A')}
+- Recent Trend: {stock_data.get('recent_trend', 'N/A')}
+
+Provide:
+1. Key Financial Highlights
+2. Management Commentary (based on typical patterns)
+3. Forward Guidance Implications
+4. What Investors Should Watch
+
+Keep it concise and focused on actionable takeaways.
+"""
+        
+        try:
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are Sherlok, an expert at summarizing financial reports for retail investors."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=800
+            )
+            
+            summary_text = response.choices[0].message.content
+            
+            return {
+                'ticker': ticker,
+                'report_type': report_type,
+                'summary': summary_text,
+                'timestamp': response.created
+            }
+        except Exception as e:
+            return {'error': f"Summarization failed: {str(e)}"}
+    
+    def get_actionable_insights(self, ticker: str) -> Dict:
+        """
+        Generate clear, actionable insights and recommendations
+        """
+        stock_data = self._get_stock_data(ticker)
+        
+        if 'error' in stock_data:
+            return {'error': f"Failed to fetch data for {ticker}"}
+        
+        prompt = f"""
+As Sherlok, provide actionable investment insights for {ticker}.
+
+Company Data:
+- Sector: {stock_data.get('sector', 'N/A')}
+- Industry: {stock_data.get('industry', 'N/A')}
+- Current Price: ${stock_data.get('current_price', 'N/A')}
+- Market Cap: ${stock_data.get('market_cap', 'N/A'):,}
+- P/E Ratio: {stock_data.get('pe_ratio', 'N/A')}
+- Revenue Growth: {stock_data.get('revenue_growth', 'N/A')}
+
+Provide actionable insights:
+1. Entry Points: When to consider buying
+2. Exit Strategy: Price targets and stop-loss recommendations
+3. Risk Management: Position sizing suggestions
+4. Timeline: Short-term vs. long-term outlook
+5. Catalysts to Watch: Upcoming events or milestones
+
+Be specific and practical for a retail investor.
+"""
+        
+        try:
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are Sherlok, providing actionable investment insights."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=900
+            )
+            
+            insights_text = response.choices[0].message.content
+            
+            return {
+                'ticker': ticker,
+                'insights': insights_text,
+                'stock_data': {
+                    'price': stock_data.get('current_price'),
+                    'market_cap': stock_data.get('market_cap'),
+                    'sector': stock_data.get('sector')
+                },
+                'timestamp': response.created
+            }
+        except Exception as e:
+            return {'error': f"Insights generation failed: {str(e)}"}

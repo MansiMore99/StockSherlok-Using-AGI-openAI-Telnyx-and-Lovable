@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TELNYX_API_KEY=${TELNYX_API_KEY}
+      - TELNYX_PHONE_NUMBER=${TELNYX_PHONE_NUMBER}
+      - FLASK_ENV=production
+      - PORT=5000
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: stocksherlok-network
