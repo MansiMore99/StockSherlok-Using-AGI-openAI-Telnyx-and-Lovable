@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Sherlok - AI Financial Detective 🔍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-voice {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-voice:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .response-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .response-section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .response-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .response-header h3 {
+            color: #667eea;
+            font-size: 1.3em;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge-intent {
+            background: #667eea;
+            color: white;
+        }
+
+        .response-content {
+            line-height: 1.8;
+            color: #333;
+            font-size: 1.05em;
+            white-space: pre-wrap;
+        }
+
+        .stock-data {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stock-data h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .stock-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .stock-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .stock-item strong {
+            display: block;
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 4px;
+        }
+
+        .stock-item span {
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .positive {
+            color: #28a745;
+        }
+
+        .negative {
+            color: #dc3545;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .feature-card {
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .feature-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .input-section {
+                flex-direction: column;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Stock Sherlok</h1>
+            <p>Your AI-Powered Financial Detective</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="stockSymbol">Stock Symbol (Optional)</label>
+                    <input type="text" id="stockSymbol" placeholder="e.g., AAPL, GOOGL, MSFT">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="userMessage">Ask Stock Sherlok anything about stocks</label>
+                <textarea id="userMessage" placeholder="e.g., What's the outlook for Apple stock? or Explain what P/E ratio means"></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="askSherlok()">
+                    <span>🔍</span> Ask Sherlok
+                </button>
+                <button class="btn-voice" onclick="toggleVoiceInput()" id="voiceBtn">
+                    <span>🎤</span> Voice Query
+                </button>
+                <button class="btn-secondary" onclick="resetConversation()">
+                    <span>🔄</span> Reset
+                </button>
+            </div>
+
+            <div id="loadingIndicator" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Sherlok is investigating...</p>
+            </div>
+
+            <div id="responseSection" class="response-section">
+                <div class="response-header">
+                    <h3>🕵️ Sherlok's Analysis</h3>
+                    <span id="intentBadge" class="badge badge-intent"></span>
+                </div>
+                <div id="responseContent" class="response-content"></div>
+                <div id="stockDataSection" class="stock-data" style="display: none;"></div>
+            </div>
+
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AGI Multi-Step Agents</h3>
+                    <p>Powered by OpenAI's advanced intelligence for complex analysis</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3>Interactive Chat</h3>
+                    <p>Simple, Lovable UI for seamless conversations</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎤</div>
+                    <h3>Voice Queries</h3>
+                    <p>Talk to Sherlok using Telnyx voice integration</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isVoiceMode = false;
+
+        async function askSherlok() {
+            const message = document.getElementById('userMessage').value.trim();
+            const symbol = document.getElementById('stockSymbol').value.trim().toUpperCase();
+
+            if (!message) {
+                alert('Please enter a question for Stock Sherlok');
+                return;
+            }
+
+            showLoading(true);
+            hideResponse();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message, symbol: symbol || undefined }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayResponse(data);
+                } else {
+                    showError(data.error || 'Failed to get response');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayResponse(data) {
+            const responseSection = document.getElementById('responseSection');
+            const responseContent = document.getElementById('responseContent');
+            const intentBadge = document.getElementById('intentBadge');
+            const stockDataSection = document.getElementById('stockDataSection');
+
+            // Display response
+            responseContent.textContent = data.response;
+            intentBadge.textContent = data.intent ? `Intent: ${data.intent}` : '';
+
+            // Display stock data if available
+            if (data.stockData) {
+                displayStockData(data.stockData);
+                stockDataSection.style.display = 'block';
+            } else {
+                stockDataSection.style.display = 'none';
+            }
+
+            responseSection.classList.add('active');
+        }
+
+        function displayStockData(stockData) {
+            const stockDataSection = document.getElementById('stockDataSection');
+            
+            let html = '<h4>📊 Stock Information</h4><div class="stock-info">';
+
+            if (stockData.quote) {
+                const q = stockData.quote;
+                const changeClass = q.change && q.change.startsWith('+') ? 'positive' : 'negative';
+                
+                html += `
+                    <div class="stock-item">
+                        <strong>Symbol</strong>
+                        <span>${q.symbol}</span>
+                    </div>
+                    <div class="stock-item">
+                        <strong>Price</strong>
+                        <span>$${q.price}</span>
+                    </div>
+                    <div class="stock-item">
+                        <strong>Change</strong>
+                        <span class="${changeClass}">${q.change} (${q.changePercent})</span>
+                    </div>
+                    <div class="stock-item">
+                        <strong>Volume</strong>
+                        <span>${parseInt(q.volume).toLocaleString()}</span>
+                    </div>
+                `;
+            }
+
+            if (stockData.company) {
+                const c = stockData.company;
+                html += `
+                    <div class="stock-item">
+                        <strong>Company</strong>
+                        <span>${c.name}</span>
+                    </div>
+                    <div class="stock-item">
+                        <strong>Sector</strong>
+                        <span>${c.sector}</span>
+                    </div>
+                    <div class="stock-item">
+                        <strong>P/E Ratio</strong>
+                        <span>${c.peRatio}</span>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            stockDataSection.innerHTML = html;
+        }
+
+        function showError(message) {
+            const responseSection = document.getElementById('responseSection');
+            const responseContent = document.getElementById('responseContent');
+            const intentBadge = document.getElementById('intentBadge');
+
+            responseContent.textContent = '❌ ' + message;
+            intentBadge.textContent = 'Error';
+            document.getElementById('stockDataSection').style.display = 'none';
+            responseSection.classList.add('active');
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
+        }
+
+        function hideResponse() {
+            document.getElementById('responseSection').classList.remove('active');
+        }
+
+        async function resetConversation() {
+            try {
+                await fetch('/api/reset', { method: 'POST' });
+                document.getElementById('userMessage').value = '';
+                document.getElementById('stockSymbol').value = '';
+                hideResponse();
+                alert('Conversation reset! Start fresh with Sherlok.');
+            } catch (error) {
+                console.error('Reset error:', error);
+            }
+        }
+
+        function toggleVoiceInput() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('Voice recognition is not supported in your browser. Please use Chrome or Edge.');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            const voiceBtn = document.getElementById('voiceBtn');
+
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            voiceBtn.innerHTML = '<span>🎤</span> Listening...';
+            voiceBtn.disabled = true;
+
+            recognition.start();
+
+            recognition.onresult = function(event) {
+                const speechResult = event.results[0][0].transcript;
+                document.getElementById('userMessage').value = speechResult;
+                voiceBtn.innerHTML = '<span>🎤</span> Voice Query';
+                voiceBtn.disabled = false;
+                
+                // Automatically submit the query
+                askSherlok();
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                voiceBtn.innerHTML = '<span>🎤</span> Voice Query';
+                voiceBtn.disabled = false;
+                alert('Voice recognition error: ' + event.error);
+            };
+
+            recognition.onend = function() {
+                voiceBtn.innerHTML = '<span>🎤</span> Voice Query';
+                voiceBtn.disabled = false;
+            };
+        }
+
+        // Allow Enter key to submit (Shift+Enter for new line)
+        document.getElementById('userMessage').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                askSherlok();
+            }
+        });
+    </script>
+</body>
+</html>
