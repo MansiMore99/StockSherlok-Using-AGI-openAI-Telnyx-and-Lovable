@@ -60,6 +60,8 @@ App will open at `http://localhost:3000`
 
 ### Using Docker Compose (Recommended)
 
+#### Production Deployment
+
 1. Create a `.env` file in the project root:
 ```bash
 OPENAI_API_KEY=your_key_here
@@ -85,6 +87,16 @@ docker-compose logs -f
 ```bash
 docker-compose down
 ```
+
+#### Development with Hot Reload
+
+For development with code hot-reloading:
+
+```bash
+docker-compose -f docker-compose.dev.yml up -d
+```
+
+This mounts your source code as volumes for live updates.
 
 ### Individual Docker Containers
 
