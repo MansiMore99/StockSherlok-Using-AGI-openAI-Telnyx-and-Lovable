@@ -3,6 +3,9 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Placeholder constant for API key configuration
+const PLACEHOLDER_API_KEY = 'your_openai_api_key_here';
+
 /**
  * StockSherlokAgent - An intelligent multi-step agent using OpenAI's AGI capabilities
  * This agent can handle complex stock analysis queries through multi-step reasoning
@@ -11,7 +14,7 @@ class StockSherlokAgent {
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY;
     
-    if (!apiKey || apiKey === 'your_openai_api_key_here') {
+    if (!apiKey || apiKey === PLACEHOLDER_API_KEY) {
       console.warn('⚠️  OpenAI API key not configured. Agent will run in limited mode.');
       this.client = null;
     } else {

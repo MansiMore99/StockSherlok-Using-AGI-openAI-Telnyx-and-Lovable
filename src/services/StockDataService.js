@@ -1,5 +1,8 @@
 import axios from 'axios';
 
+// Placeholder constant for API key configuration
+const PLACEHOLDER_API_KEY = 'your_alpha_vantage_api_key_here';
+
 /**
  * StockDataService - Handles fetching stock data from various sources
  */
@@ -15,7 +18,7 @@ class StockDataService {
     // For demo purposes, using mock data
     // In production, you would use Alpha Vantage or similar APIs
     try {
-      if (this.alphaVantageKey && this.alphaVantageKey !== 'your_alpha_vantage_api_key_here') {
+      if (this.alphaVantageKey && this.alphaVantageKey !== PLACEHOLDER_API_KEY) {
         const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${this.alphaVantageKey}`;
         const response = await axios.get(url);
         
@@ -45,7 +48,7 @@ class StockDataService {
    */
   async getCompanyOverview(symbol) {
     try {
-      if (this.alphaVantageKey && this.alphaVantageKey !== 'your_alpha_vantage_api_key_here') {
+      if (this.alphaVantageKey && this.alphaVantageKey !== PLACEHOLDER_API_KEY) {
         const url = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${symbol}&apikey=${this.alphaVantageKey}`;
         const response = await axios.get(url);
         

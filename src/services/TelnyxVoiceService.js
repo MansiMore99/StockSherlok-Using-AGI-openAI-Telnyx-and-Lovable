@@ -1,5 +1,8 @@
 import telnyx from 'telnyx';
 
+// Placeholder constant for API key configuration
+const PLACEHOLDER_API_KEY = 'your_telnyx_api_key_here';
+
 /**
  * TelnyxVoiceService - Handles voice-based queries via Telnyx
  * This enables users to talk to Stock Sherlok like a real financial assistant
@@ -9,7 +12,7 @@ class TelnyxVoiceService {
     this.apiKey = process.env.TELNYX_API_KEY;
     this.phoneNumber = process.env.TELNYX_PHONE_NUMBER;
     
-    if (this.apiKey && this.apiKey !== 'your_telnyx_api_key_here') {
+    if (this.apiKey && this.apiKey !== PLACEHOLDER_API_KEY) {
       this.client = telnyx(this.apiKey);
       this.enabled = true;
     } else {
@@ -114,12 +117,12 @@ class TelnyxVoiceService {
         connection_id: process.env.TELNYX_CONNECTION_ID,
       });
 
-      // Wait for answer and speak message
-      if (message) {
-        await this.speakText(call.data.call_control_id, message);
-      }
-
-      return { success: true, callControlId: call.data.call_control_id };
+      // Note: Message will be spoken once call is answered via webhook event handler
+      return { 
+        success: true, 
+        callControlId: call.data.call_control_id,
+        note: 'Call initiated. Message will be spoken when answered via webhook.'
+      };
     } catch (error) {
       console.error('Error making outbound call:', error.message);
       return { success: false, message: error.message };
