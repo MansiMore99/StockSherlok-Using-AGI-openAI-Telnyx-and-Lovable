@@ -37,9 +37,9 @@ It fetches market data, analyzes patterns, and summarizes growth signals so user
 1. **User Query**  
    User asks a query or ticker.
    ```bash
-  Query: Top mid-cap companies this week,
-  Tickers: [PLTR, CRWD, NET]   // optional
-  ```
+   Query: Top mid-cap companies this week,
+   Tickers: [PLTR, CRWD, NET]   // optional
+   ```
 
 3. **Agent Tools**  
    The AGI agent calls a stock lookup tool to pull real price history.
