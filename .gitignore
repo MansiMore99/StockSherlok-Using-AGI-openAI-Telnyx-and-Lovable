@@ -24,6 +24,10 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.pytest_cache/
+*.cover
+.coverage
+htmlcov/
 
 # Virtual environments
 venv/
@@ -37,6 +41,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+package-lock.json
 
 # Build outputs
 frontend/build/
@@ -56,3 +61,8 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
