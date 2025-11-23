@@ -32,27 +32,34 @@ It fetches market data, analyzes patterns, and summarizes growth signals so user
 
 ---
 
-## 🧭 How It Works
+### 🧭 How It Works
 
-1. **User Query**  
-   User asks a query or ticker.
-   ```bash
-   Query: Top mid-cap companies this week,
-   Tickers: [PLTR, CRWD, NET]   // optional
-   ```
+#### How to test
+```
+Run backend on port 5000:
+python app.py
+```
 
-3. **Agent Tools**  
-   The AGI agent calls a stock lookup tool to pull real price history.
+#### Run frontend:
+```
+npm install
+npm run dev
+```
 
-4. **Metric Calculation**  
-   Computes trends, volatility, percent changes, etc.
+**Type a query and click Analyze:**
+```
+"Analyzing…" appears
+```
 
-5. **LLM Reasoning**  
-   OpenAI analyzes data and generates rankings + explanations.
-
-6. **UI + Voice Output**  
-   The Lovable frontend visualizes insights.  
-   Telnyx can speak insights back to the user.
+**After backend returns, the entire dashboard populates**
+```
+- Top 3 picks appear
+- Comparison table fills
+- Charts render correctly
+- Spoken summary shows text
+- No layout breakage
+- Error states work
+```
 
 ---
 
