@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import rateLimit from 'express-rate-limit';
 import StockSherlokAgent from './agents/StockSherlokAgent.js';
 import StockDataService from './services/StockDataService.js';
 import TelnyxVoiceService from './services/TelnyxVoiceService.js';
@@ -20,10 +21,22 @@ const agent = new StockSherlokAgent();
 const stockService = new StockDataService();
 const voiceService = new TelnyxVoiceService();
 
+// Rate limiting middleware for API endpoints
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Apply rate limiting to API routes
+app.use('/api/', apiLimiter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
