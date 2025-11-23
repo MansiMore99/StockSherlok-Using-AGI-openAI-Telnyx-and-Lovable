@@ -1,12 +1,4 @@
 # 🕵️ StockSherlok
-
-# 🕵️ StockSherlok
-
-[![OpenAI](https://img.shields.io/badge/OpenAI-%F0%9F%A7%A0-blue?style=for-the-badge&logo=openai)](https://openai.com)  
-[![AGI SDK](https://img.shields.io/badge/AGI-SDK-agent--framework-green?style=for-the-badge&logo=github)](https://github.com/agi-inc/agisdk)  
-[![Lovable UI](https://img.shields.io/badge/Lovable-UI-user--friendly-purple?style=for-the-badge)](https://lovable.dev)  
-[![Telnyx Voice](https://img.shields.io/badge/Telnyx-Voice-futuristic-teal?style=for-the-badge&logo=telnyx)](https://telnyx.com)  
-
 ---
 
 <img width="1536" height="1024" alt="project_!" src="https://github.com/user-attachments/assets/a6716a05-7f03-4c8d-97b1-4d368f749c88" />
