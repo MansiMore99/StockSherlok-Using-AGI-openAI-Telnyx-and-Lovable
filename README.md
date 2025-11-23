@@ -1,5 +1,3 @@
-# 🕵️ StockSherlok
----
 
 <img width="1536" height="1024" alt="project_!" src="https://github.com/user-attachments/assets/a6716a05-7f03-4c8d-97b1-4d368f749c88" />
 
