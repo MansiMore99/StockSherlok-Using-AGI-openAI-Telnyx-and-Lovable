@@ -290,3 +290,42 @@ Be specific and practical for a retail investor.
             }
         except Exception as e:
             return {'error': f"Insights generation failed: {str(e)}"}
+    
+    def discover_midcap_companies(self, limit: int = 15) -> List[str]:
+        """
+        Discover mid-cap companies (market cap between 2B and 10B)
+        
+        Args:
+            limit: Maximum number of companies to return (default: 15)
+            
+        Returns:
+            List of ticker symbols for mid-cap companies
+        """
+        # Expanded list of potential mid-cap tech companies
+        # In production, this would query a real-time market data API
+        potential_tickers = [
+            'PLTR', 'SNOW', 'CRWD', 'NET', 'DDOG', 'ZS', 'OKTA', 'FTNT',
+            'PANW', 'MDB', 'TEAM', 'WDAY', 'DOCU', 'TWLO', 'SHOP',
+            'SQ', 'UBER', 'LYFT', 'COIN', 'RBLX', 'U', 'PATH',
+            'BILL', 'PCTY', 'HUBS', 'ZM', 'ESTC', 'CFLT', 'S', 'FROG'
+        ]
+        
+        midcap_companies = []
+        
+        for ticker in potential_tickers:
+            if len(midcap_companies) >= limit:
+                break
+                
+            try:
+                stock_data = self._get_stock_data(ticker)
+                
+                # Check if it's in the mid-cap range (2B - 10B)
+                if 'error' not in stock_data:
+                    market_cap = stock_data.get('market_cap', 0)
+                    if isinstance(market_cap, (int, float)) and 2e9 <= market_cap <= 10e9:
+                        midcap_companies.append(ticker)
+            except Exception:
+                # Skip tickers that fail
+                continue
+        
+        return midcap_companies

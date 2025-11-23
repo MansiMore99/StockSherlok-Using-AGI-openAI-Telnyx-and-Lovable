@@ -168,6 +168,48 @@ def get_insights():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/analyze-multiple', methods=['POST'])
+def analyze_multiple():
+    """
+    Analyze multiple companies or auto-discover mid-cap companies
+    Expected payload: { 
+        "query": "top mid cap companies this week",  // optional, for context
+        "tickers": ["PLTR", "CRWD", "NET"]  // optional
+    }
+    
+    If tickers are provided, analyze those specific companies.
+    If tickers are NOT provided, auto-discover mid-cap companies and analyze them.
+    """
+    try:
+        data = request.get_json() or {}
+        tickers = data.get('tickers', [])
+        query = data.get('query', '')
+        
+        # If no tickers provided, discover mid-cap companies
+        if not tickers:
+            tickers = research_agent.discover_midcap_companies(limit=15)
+            
+            if not tickers:
+                return jsonify({
+                    'error': 'No mid-cap companies found. Please try again later.'
+                }), 404
+        
+        # Analyze each ticker
+        results = []
+        for ticker in tickers:
+            analysis = research_agent.analyze_company(ticker)
+            results.append(analysis)
+        
+        return jsonify({
+            'success': True,
+            'query': query,
+            'count': len(results),
+            'results': results
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     print(f"Starting StockSherlok API on port {port}...")
