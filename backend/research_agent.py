@@ -5,6 +5,7 @@ import openai
 import yfinance as yf
 from typing import Dict, List, Optional
 import json
+from metrics_engine import compute_metrics
 
 
 class ResearchAgent:
@@ -17,14 +18,23 @@ class ResearchAgent:
         self.api_key = api_key
         openai.api_key = api_key
         
-    def _get_stock_data(self, ticker: str) -> Dict:
-        """Fetch stock data using yfinance"""
+    def _get_stock_data(self, ticker: str, include_history: bool = False) -> Dict:
+        """
+        Fetch stock data using yfinance
+        
+        Args:
+            ticker: Stock ticker symbol
+            include_history: If True, include price history DataFrame
+            
+        Returns:
+            Dict with stock data and optionally price_history
+        """
         try:
             stock = yf.Ticker(ticker)
             info = stock.info
-            history = stock.history(period="1mo")
+            history = stock.history(period="6mo")  # Get 6 months for trend analysis
             
-            return {
+            data = {
                 'current_price': info.get('currentPrice', 'N/A'),
                 'market_cap': info.get('marketCap', 'N/A'),
                 'pe_ratio': info.get('trailingPE', 'N/A'),
@@ -33,8 +43,14 @@ class ResearchAgent:
                 'sector': info.get('sector', 'N/A'),
                 'industry': info.get('industry', 'N/A'),
                 'summary': info.get('longBusinessSummary', 'N/A'),
+                'avg_volume': info.get('averageVolume', 'N/A'),
                 'recent_trend': 'up' if len(history) > 0 and history['Close'].iloc[-1] > history['Close'].iloc[0] else 'down'
             }
+            
+            if include_history:
+                data['price_history'] = history
+            
+            return data
         except Exception as e:
             return {'error': str(e)}
     
@@ -329,3 +345,30 @@ Be specific and practical for a retail investor.
                 continue
         
         return midcap_companies
+    
+    def get_ticker_metrics(self, ticker: str) -> Dict:
+        """
+        Get computed metrics for a ticker
+        
+        Args:
+            ticker: Stock ticker symbol
+            
+        Returns:
+            Dict with computed metrics or error
+        """
+        try:
+            # Get stock data with price history
+            stock_data = self._get_stock_data(ticker, include_history=True)
+            
+            if 'error' in stock_data:
+                return {'error': f"Failed to fetch data for {ticker}"}
+            
+            # Extract price history
+            price_history = stock_data.pop('price_history', None)
+            
+            # Compute metrics
+            metrics = compute_metrics(price_history, stock_data)
+            
+            return metrics
+        except Exception as e:
+            return {'error': f"Metrics computation failed: {str(e)}"}

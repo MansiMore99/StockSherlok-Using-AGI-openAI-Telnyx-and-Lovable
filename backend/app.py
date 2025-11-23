@@ -194,10 +194,18 @@ def analyze_multiple():
                     'error': 'No mid-cap companies found. Please try again later.'
                 }), 404
         
-        # Analyze each ticker
+        # Analyze each ticker and compute metrics
         results = []
         for ticker in tickers:
             analysis = research_agent.analyze_company(ticker)
+            
+            # Compute metrics for this ticker
+            metrics = research_agent.get_ticker_metrics(ticker)
+            
+            # Add metrics to the result (if no error)
+            if 'error' not in metrics:
+                analysis['metrics'] = metrics
+            
             results.append(analysis)
         
         return jsonify({
