@@ -37,10 +37,8 @@ It fetches market data, analyzes patterns, and summarizes growth signals so user
 1. **User Query**  
    User asks a query or ticker.
    ```
-   {
-  "query": "top mid cap companies this week",
-  "tickers": ["PLTR", "CRWD", "NET"]   // optional
-}
+  Query: Top mid-cap companies this week,
+  Tickers: [PLTR, CRWD, NET]   // optional
 ```
 
 3. **Agent Tools**  
