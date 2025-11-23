@@ -208,11 +208,15 @@ def analyze_multiple():
             
             results.append(analysis)
         
+        # Use LLM to analyze and compare all companies
+        llm_summary = research_agent.analyze_multiple_companies_llm(query, results)
+        
         return jsonify({
             'success': True,
             'query': query,
             'count': len(results),
-            'results': results
+            'results': results,
+            'llm_summary': llm_summary
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500

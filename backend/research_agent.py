@@ -372,3 +372,133 @@ Be specific and practical for a retail investor.
             return metrics
         except Exception as e:
             return {'error': f"Metrics computation failed: {str(e)}"}
+    
+    def analyze_multiple_companies_llm(self, query: str, results: List[Dict]) -> Dict:
+        """
+        Use LLM to compare multiple companies and produce ranked Top 3 picks
+        
+        Args:
+            query: User's query/request
+            results: List of company analysis results with metrics
+            
+        Returns:
+            Dict with query_interpreted, top_3_companies, and spoken_summary
+        """
+        # Build a summary of all companies for the LLM
+        companies_summary = []
+        
+        for result in results:
+            if 'error' in result:
+                continue
+                
+            ticker = result.get('ticker', 'N/A')
+            company_name = result.get('company_name', ticker)
+            stock_data = result.get('stock_data', {})
+            metrics = result.get('metrics', {})
+            
+            # Extract key information
+            company_info = {
+                'ticker': ticker,
+                'company_name': company_name,
+                'sector': stock_data.get('sector', 'N/A'),
+                'market_cap': stock_data.get('market_cap', 'N/A'),
+                'current_price': stock_data.get('current_price', 'N/A'),
+                'recent_trend': stock_data.get('recent_trend', 'N/A'),
+                'metrics': {
+                    'weekly_change': metrics.get('weekly_change', 0),
+                    'monthly_change': metrics.get('monthly_change', 0),
+                    'six_month_trend_slope': metrics.get('six_month_trend_slope', 0),
+                    'volatility': metrics.get('volatility', 0),
+                    'revenue_growth_yoy': metrics.get('revenue_growth_yoy', 0),
+                    'growth_score': metrics.get('growth_score', 0)
+                }
+            }
+            companies_summary.append(company_info)
+        
+        # Create the prompt for OpenAI
+        prompt = f"""You are StockSherlok, an investment insight agent.
+You do NOT give financial advice. You only analyze and compare companies.
+
+User Query: {query}
+
+Companies to Analyze:
+{json.dumps(companies_summary, indent=2)}
+
+Your task:
+1. Understand the user query
+2. Compare all provided companies using their metrics:
+   - weekly_change: % change over last 7 days
+   - monthly_change: % change over last 30 days
+   - six_month_trend_slope: trend direction (higher is better)
+   - volatility: price stability (lower is better)
+   - revenue_growth_yoy: year-over-year revenue growth
+   - growth_score: composite score (0-10, higher is better)
+3. Rank companies by growth potential
+4. Select the TOP 3 companies
+5. Explain WHY each one stands out
+6. Keep explanations simple and friendly
+7. Create a spoken_summary (1-2 sentences per company)
+
+Return ONLY valid JSON in this exact format:
+{{
+  "query_interpreted": "brief interpretation of what user is looking for",
+  "top_3_companies": [
+    {{
+      "ticker": "TICKER",
+      "company_name": "Company Name",
+      "growth_score": "X.X",
+      "why_selected": "Clear explanation of why this company was selected",
+      "risk_label": "Low/Medium/High"
+    }}
+  ],
+  "spoken_summary": "Conversational summary of the top 3 picks in 2-3 sentences"
+}}"""
+        
+        try:
+            response = openai.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are StockSherlok, an AI that analyzes and compares companies. Return only valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1500
+            )
+            
+            # Parse the response
+            llm_response = response.choices[0].message.content
+            
+            # Try to parse as JSON
+            try:
+                parsed_result = json.loads(llm_response)
+                return parsed_result
+            except json.JSONDecodeError:
+                # If parsing fails, return a structured error
+                return {
+                    'query_interpreted': query,
+                    'top_3_companies': [],
+                    'spoken_summary': 'Unable to generate comparison. Please try again.',
+                    'error': 'Failed to parse LLM response as JSON'
+                }
+                
+        except openai.RateLimitError:
+            return {
+                'query_interpreted': query,
+                'top_3_companies': [],
+                'spoken_summary': 'API rate limit exceeded. Please try again in a moment.',
+                'error': 'Rate limit exceeded'
+            }
+        except openai.AuthenticationError:
+            return {
+                'query_interpreted': query,
+                'top_3_companies': [],
+                'spoken_summary': 'Authentication failed. Please check API key.',
+                'error': 'Authentication failed'
+            }
+        except Exception as e:
+            return {
+                'query_interpreted': query,
+                'top_3_companies': [],
+                'spoken_summary': f'Analysis failed: {str(e)}',
+                'error': str(e)
+            }
