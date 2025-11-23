@@ -214,13 +214,18 @@ def analyze_multiple():
         # Generate comparison charts
         charts = research_agent.create_comparison_charts(results)
         
+        # Create UI-friendly response structure with convenience shortcuts
         return jsonify({
             'success': True,
-            'query': query,
-            'count': len(results),
-            'results': results,
-            'llm_summary': llm_summary,
-            'charts': charts
+            'analysis': {
+                'query': query,
+                'count': len(results),
+                'companies_raw': results,
+                'summary': llm_summary,
+                'charts': charts,
+                'top_3': llm_summary.get('top_3_companies', []),
+                'spoken_summary': llm_summary.get('spoken_summary', '')
+            }
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
