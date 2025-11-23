@@ -9,17 +9,19 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState(null);
   const [signals, setSignals] = useState(null);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('analyze');
   const [sector, setSector] = useState('technology');
 
   const analyzeCompany = async () => {
     if (!ticker.trim()) {
-      alert('Please enter a ticker symbol');
+      setError('Please enter a ticker symbol');
       return;
     }
 
     setLoading(true);
     setAnalysis(null);
+    setError(null);
 
     try {
       const response = await axios.post(`${API_BASE_URL}/analyze`, {
@@ -27,9 +29,9 @@ function App() {
       });
 
       setAnalysis(response.data.analysis);
-    } catch (error) {
-      console.error('Error analyzing company:', error);
-      alert('Failed to analyze company. Please check the ticker symbol and try again.');
+    } catch (err) {
+      console.error('Error analyzing company:', err);
+      setError(err.response?.data?.error || 'Failed to analyze company. Please check the ticker symbol and try again.');
     } finally {
       setLoading(false);
     }
@@ -38,6 +40,7 @@ function App() {
   const scanMarket = async () => {
     setLoading(true);
     setSignals(null);
+    setError(null);
 
     try {
       const response = await axios.post(`${API_BASE_URL}/scan`, {
@@ -46,9 +49,9 @@ function App() {
       });
 
       setSignals(response.data.signals);
-    } catch (error) {
-      console.error('Error scanning market:', error);
-      alert('Failed to scan market signals.');
+    } catch (err) {
+      console.error('Error scanning market:', err);
+      setError(err.response?.data?.error || 'Failed to scan market signals.');
     } finally {
       setLoading(false);
     }
@@ -56,12 +59,13 @@ function App() {
 
   const getInsights = async () => {
     if (!ticker.trim()) {
-      alert('Please enter a ticker symbol');
+      setError('Please enter a ticker symbol');
       return;
     }
 
     setLoading(true);
     setAnalysis(null);
+    setError(null);
 
     try {
       const response = await axios.post(`${API_BASE_URL}/insights`, {
@@ -69,9 +73,9 @@ function App() {
       });
 
       setAnalysis(response.data.insights);
-    } catch (error) {
-      console.error('Error getting insights:', error);
-      alert('Failed to get insights. Please try again.');
+    } catch (err) {
+      console.error('Error getting insights:', err);
+      setError(err.response?.data?.error || 'Failed to get insights. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -177,6 +181,16 @@ function App() {
                   {loading ? 'Loading...' : 'Get Insights'}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="error-message">
+            <div className="error-content">
+              <span className="error-icon">⚠️</span>
+              <span>{error}</span>
+              <button className="error-close" onClick={() => setError(null)}>×</button>
             </div>
           </div>
         )}

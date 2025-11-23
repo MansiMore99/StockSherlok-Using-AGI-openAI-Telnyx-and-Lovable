@@ -103,6 +103,21 @@ Keep the analysis concise and actionable for retail investors.
                 'analysis': analysis_text,
                 'timestamp': response.created
             }
+        except openai.RateLimitError:
+            return {
+                'error': "OpenAI API rate limit exceeded. Please try again in a moment.",
+                'stock_data': stock_data
+            }
+        except openai.AuthenticationError:
+            return {
+                'error': "OpenAI API authentication failed. Please check your API key.",
+                'stock_data': stock_data
+            }
+        except openai.APIError as e:
+            return {
+                'error': f"OpenAI API error: {str(e)}. Please try again.",
+                'stock_data': stock_data
+            }
         except Exception as e:
             return {
                 'error': f"Analysis failed: {str(e)}",

@@ -5,6 +5,7 @@ Main application file
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
+import sys
 from dotenv import load_dotenv
 from research_agent import ResearchAgent
 from voice_handler import VoiceHandler
@@ -12,16 +13,33 @@ from voice_handler import VoiceHandler
 # Load environment variables
 load_dotenv()
 
+# Validate required environment variables
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+if not OPENAI_API_KEY:
+    print("ERROR: OPENAI_API_KEY environment variable is required")
+    print("Please set it in your .env file")
+    sys.exit(1)
+
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 
 # Initialize services
-research_agent = ResearchAgent(api_key=os.getenv('OPENAI_API_KEY'))
-voice_handler = VoiceHandler(
-    api_key=os.getenv('TELNYX_API_KEY'),
-    phone_number=os.getenv('TELNYX_PHONE_NUMBER')
-)
+research_agent = ResearchAgent(api_key=OPENAI_API_KEY)
+
+# Voice handler is optional (only if Telnyx credentials are provided)
+TELNYX_API_KEY = os.getenv('TELNYX_API_KEY')
+TELNYX_PHONE_NUMBER = os.getenv('TELNYX_PHONE_NUMBER')
+
+if TELNYX_API_KEY and TELNYX_PHONE_NUMBER:
+    voice_handler = VoiceHandler(
+        api_key=TELNYX_API_KEY,
+        phone_number=TELNYX_PHONE_NUMBER
+    )
+    print("✓ Voice handler initialized")
+else:
+    voice_handler = None
+    print("⚠ Voice handler not initialized (Telnyx credentials not provided)")
 
 
 @app.route('/api/health', methods=['GET'])
@@ -29,7 +47,8 @@ def health_check():
     """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
-        'service': 'StockSherlok Research Agent'
+        'service': 'StockSherlok Research Agent',
+        'voice_enabled': voice_handler is not None
     })
 
 
@@ -113,6 +132,9 @@ def voice_webhook():
     """
     Handle Telnyx voice webhooks
     """
+    if not voice_handler:
+        return jsonify({'error': 'Voice features not enabled'}), 503
+    
     try:
         data = request.get_json()
         response = voice_handler.handle_webhook(data)
@@ -148,4 +170,5 @@ def get_insights():
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
+    print(f"Starting StockSherlok API on port {port}...")
     app.run(host='0.0.0.0', port=port, debug=os.getenv('FLASK_ENV') == 'development')
