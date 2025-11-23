@@ -35,18 +35,24 @@ It fetches market data, analyzes patterns, and summarizes growth signals so user
 ## 🧭 How It Works
 
 1. **User Query**  
-   User asks about a company or ticker.
+   User asks a query or ticker.
+   ```
+   {
+  "query": "top mid cap companies this week",
+  "tickers": ["PLTR", "CRWD", "NET"]   // optional
+}
+```
 
-2. **Agent Tools**  
+3. **Agent Tools**  
    The AGI agent calls a stock lookup tool to pull real price history.
 
-3. **Metric Calculation**  
+4. **Metric Calculation**  
    Computes trends, volatility, percent changes, etc.
 
-4. **LLM Reasoning**  
+5. **LLM Reasoning**  
    OpenAI analyzes data and generates rankings + explanations.
 
-5. **UI + Voice Output**  
+6. **UI + Voice Output**  
    The Lovable frontend visualizes insights.  
    Telnyx can speak insights back to the user.
 
