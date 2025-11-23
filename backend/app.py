@@ -211,12 +211,16 @@ def analyze_multiple():
         # Use LLM to analyze and compare all companies
         llm_summary = research_agent.analyze_multiple_companies_llm(query, results)
         
+        # Generate comparison charts
+        charts = research_agent.create_comparison_charts(results)
+        
         return jsonify({
             'success': True,
             'query': query,
             'count': len(results),
             'results': results,
-            'llm_summary': llm_summary
+            'llm_summary': llm_summary,
+            'charts': charts
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500

@@ -6,6 +6,7 @@ import yfinance as yf
 from typing import Dict, List, Optional
 import json
 from metrics_engine import compute_metrics
+from chart_generator import generate_comparison_charts
 
 
 class ResearchAgent:
@@ -502,3 +503,27 @@ Return ONLY valid JSON in this exact format:
                 'spoken_summary': f'Analysis failed: {str(e)}',
                 'error': str(e)
             }
+    
+    def create_comparison_charts(self, results: List[Dict]) -> List[Dict]:
+        """
+        Create comparison charts for multiple companies
+        
+        Args:
+            results: List of company analysis results with metrics
+            
+        Returns:
+            List of chart dictionaries with base64 encoded images
+        """
+        try:
+            # Use the chart generator to create charts
+            charts = generate_comparison_charts(results)
+            return charts
+        except Exception as e:
+            # Return empty list if chart generation fails
+            return [{
+                'chart_type': 'bar',
+                'metric': 'error',
+                'title': 'Chart Generation Failed',
+                'image_base64': '',
+                'error': str(e)
+            }]

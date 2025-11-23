@@ -222,5 +222,101 @@ class TestMetricsEngine(unittest.TestCase):
         self.assertIn('growth_score', metrics)
 
 
+class TestChartGenerator(unittest.TestCase):
+    """Test chart generation functionality"""
+    
+    def test_generate_bar_chart(self):
+        """Test basic bar chart generation"""
+        from chart_generator import generate_bar_chart
+        
+        labels = ['PLTR', 'CRWD', 'NET']
+        values = [5.2, 8.1, 6.5]
+        
+        result = generate_bar_chart(
+            title="Test Chart",
+            labels=labels,
+            values=values,
+            ylabel="Test Metric"
+        )
+        
+        # Check structure
+        self.assertIn('chart_type', result)
+        self.assertIn('title', result)
+        self.assertIn('image_base64', result)
+        
+        # Check values
+        self.assertEqual(result['chart_type'], 'bar')
+        self.assertEqual(result['title'], 'Test Chart')
+        
+        # Check that base64 image was generated (should be non-empty string)
+        if 'error' not in result:
+            self.assertIsInstance(result['image_base64'], str)
+            self.assertGreater(len(result['image_base64']), 0)
+    
+    def test_generate_bar_chart_empty_data(self):
+        """Test bar chart generation with empty data"""
+        from chart_generator import generate_bar_chart
+        
+        result = generate_bar_chart(
+            title="Empty Chart",
+            labels=[],
+            values=[],
+            ylabel="Test"
+        )
+        
+        # Should return error structure
+        self.assertIn('error', result)
+        self.assertEqual(result['image_base64'], '')
+    
+    def test_create_comparison_charts(self):
+        """Test creating comparison charts for multiple companies"""
+        from research_agent import ResearchAgent
+        
+        # Create fake results
+        fake_results = [
+            {
+                'ticker': 'PLTR',
+                'stock_data': {'market_cap': 5000000000},
+                'metrics': {
+                    'monthly_change': 4.2,
+                    'revenue_growth_yoy': 0.30
+                }
+            },
+            {
+                'ticker': 'CRWD',
+                'stock_data': {'market_cap': 8000000000},
+                'metrics': {
+                    'monthly_change': 12.1,
+                    'revenue_growth_yoy': 0.45
+                }
+            },
+            {
+                'ticker': 'NET',
+                'stock_data': {'market_cap': 6000000000},
+                'metrics': {
+                    'monthly_change': 8.5,
+                    'revenue_growth_yoy': 0.35
+                }
+            }
+        ]
+        
+        agent = ResearchAgent('fake-api-key')
+        charts = agent.create_comparison_charts(fake_results)
+        
+        # Should return exactly 3 charts
+        self.assertIsInstance(charts, list)
+        self.assertGreaterEqual(len(charts), 3)
+        
+        # Each chart should have required fields
+        for chart in charts:
+            self.assertIn('chart_type', chart)
+            self.assertIn('metric', chart)
+            self.assertIn('image_base64', chart)
+            
+            # If no error, should have base64 string
+            if 'error' not in chart:
+                self.assertIsInstance(chart['image_base64'], str)
+
+
 if __name__ == '__main__':
     unittest.main()
